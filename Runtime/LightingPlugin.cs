@@ -44,11 +44,15 @@ public sealed class LightingPlugin : IPlugin
         if (app.World.TryGetResource<Renderer>(out var renderer))
         {
             renderer.AddExtractSystem(new LightExtract());
-            Logger.Info("LightingPlugin: LightExtract registered with the Renderer.");
+            // Pack RenderLights into a per-frame UBO and publish it as
+            // FrameLightingBinding so material pipelines can wire it into their
+            // descriptor sets at draw time.
+            renderer.AddPrepareSystem(new LightingUboPrepare());
+            Logger.Info("LightingPlugin: LightExtract + LightingUboPrepare registered with the Renderer.");
         }
         else
         {
-            Logger.Debug("LightingPlugin: no Renderer resource present; LightExtract not registered (headless / test path).");
+            Logger.Debug("LightingPlugin: no Renderer resource present; LightExtract / LightingUboPrepare not registered (headless / test path).");
         }
     }
 }
